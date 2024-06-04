@@ -1,9 +1,7 @@
 const { Parser } = require("node-sql-parser");
 const parser = new Parser();
 
-const { tableList, columnList, ast } = parser.parse(
-  "INSERT INTO tabela(ds_arquivo, coluna1, coluna2) values ('teste.csv', 'valor1', 'valor2')",
-);
+
 
 /**
  * Parses the operation from the given SQL string.
@@ -50,19 +48,31 @@ const port = 3000;
 
 app.get('/', (req, res) => {
 
-    const tableName = parseName(tableList[0]);
-    const operation = parseOperation(tableList[0]).toUpperCase();
-    const columns = buildColumnsAndValues(columnList, ast.values[0].value);
-    
-    const result = `this.sql = await this.maxysService.insert({
-                      table: "${tableName},
-                      operationType: "${operation}",
-                      columns: ${JSON.stringify(columns)}
-                    });
-                    `;
-    
+    const sql = req.query?.sql || '';
 
-  res.send(result)
+    if (sql === '') {
+        res.send('SQL is required');
+        return;
+    }
+
+
+    try {
+        const { tableList, columnList, ast } = parser.parse(sql);
+        const tableName = parseName(tableList[0]);
+        const operation = parseOperation(tableList[0]).toUpperCase();
+        const columns = buildColumnsAndValues(columnList, ast.values[0].value);
+        
+        const result = `this.sql = await this.maxysService.insert({
+                          table: "${tableName},
+                          operationType: "${operation}",
+                          columns: ${JSON.stringify(columns)}
+                        });
+        `;
+        
+        res.send(result);
+    } catch (error) {
+        res.send(error.message);
+    };
 })
 
 app.listen(port, () => {
