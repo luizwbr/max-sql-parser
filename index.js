@@ -42,13 +42,29 @@ function buildColumnsAndValues(columnList, values) {
   });
 }
 
-const tableName = parseName(tableList[0]);
-const operation = parseOperation(tableList[0]).toUpperCase();
-const columns = buildColumnsAndValues(columnList, ast.values[0].value);
 
-console.log(`this.sql = await this.maxysService.insert({
-                  table: "${tableName},
-                  operationType: "${operation}",
-                  columns: ${JSON.stringify(columns)}
-                });
-                `);
+
+const express = require('express')
+const app = express()
+const port = 3000;
+
+app.get('/', (req, res) => {
+
+    const tableName = parseName(tableList[0]);
+    const operation = parseOperation(tableList[0]).toUpperCase();
+    const columns = buildColumnsAndValues(columnList, ast.values[0].value);
+    
+    const result = `this.sql = await this.maxysService.insert({
+                      table: "${tableName},
+                      operationType: "${operation}",
+                      columns: ${JSON.stringify(columns)}
+                    });
+                    `;
+    
+
+  res.send(result)
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
